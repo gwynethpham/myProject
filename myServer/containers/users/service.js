@@ -5,7 +5,7 @@ const db = require('../../db/db');
 const User = db.User;
 
 module.exports = {
-    // authenticate,
+    authenticate,
     getAll,
     getById,
     create,
@@ -13,17 +13,17 @@ module.exports = {
     delete: _delete
 };
 
-// async function authenticate({ username, password }) {
-//     const user = await User.findOne({ username });
-//     if (user && bcrypt.compareSync(password, user.hash)) {
-//         const { hash, ...userWithoutHash } = user.toObject();
-//         const token = jwt.sign({ sub: user.id }, config.secret);
-//         return {
-//             ...userWithoutHash,
-//             token
-//         };
-//     }
-// }
+async function authenticate({ username, password }) {
+    const user = await User.findOne({ username });
+    if (user && bcrypt.compareSync(password, user.hash)) {
+        const { hash, ...userWithoutHash } = user.toObject();
+        const token = jwt.sign({ sub: user.id }, config.secret);
+        return {
+            ...userWithoutHash,
+            token
+        };
+    }
+}
 
 async function getAll() {
     return await User.find().select('-hash');

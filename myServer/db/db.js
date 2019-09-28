@@ -1,40 +1,39 @@
-const {newProjectDB} = require('./../db/index');
-const { connectHost } = require('./config');
-const dotenv = require('dotenv');
-dotenv.config();
+const config = require('./config');
+const mongoose = require('mongoose');
+mongoose.set('useCreateIndex', true);
 
-connectDB(newProjectDB, connectHost);
+const dbURI = config.connectHost;
+try {
+    mongoose.connect(dbURI, {
+        useNewUrlParser: true
+    })
+} catch (error) { }
 
-function connectDB(db, connectUrl) {
-    console.log('connectDB');
-    console.log('newProjectDB',newProjectDB)
-    // When successfully connected
-    db.on('connected', function () {
+// When successfully connected
+mongoose.connection.on('connected', function () {
+    console.log('Mongoose default connection open to ' + dbURI);
+});
 
-        console.log('connection open to ' + connectUrl);
+// If the connection throws an error
+mongoose.connection.on('error', function (err) {
+    console.log('Mongoose default connection error: ' + err);
+});
+
+// When the connection is disconnected
+mongoose.connection.on('disconnected', function () {
+    console.log('Mongoose default connection disconnected');
+});
+
+// If the Node process ends, close the Mongoose connection
+process.on('SIGINT', function () {
+    mongoose.connection.close(function () {
+        console.log('Mongoose default connection disconnected through app termination');
+        process.exit(0);
     });
+});
 
-    // If the connection throws an error
-    db.on('error', function (err) {
-        console.log('connection error: ' + err);
-    });
+mongoose.Promise = global.Promise;
 
-    // When the connection is disconnected
-    db.on('disconnected', function () {
-        console.log('connection disconnected');
-    });
-
-    // If the Node process ends, close the DB connection
-    process.on('SIGINT', function () {
-        db.close(function () {
-            console.log('connection disconnected through app termination');
-            process.exit(0);
-        });
-    });
-
-    db.Promise = global.Promise;
-}
 module.exports = {
-	//===========================================================My DB=========================================================================
-	User: newProjectDB.model('User', require('../containers/users/model'))
+    User: require('../containers/users/model')
 }
